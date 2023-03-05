@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+  localstack:
+    image: ${LOCALSTACK_IMAGE:-localstack/localstack:1.4.0}
+    ports:
+      - "127.0.0.1:4566:4566"            # LocalStack Gateway
+      - "127.0.0.1:4510-4559:4510-4559"  # external services port range
+    environment:
+      - DEBUG=${DEBUG-}
+      - LAMBDA_EXECUTOR=${LAMBDA_EXECUTOR-}
+      - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY:-}
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - S3_HOSTNAME=localhost
+      - EAGER_SERVICE_LOADING=1
+    volumes:
+      - "${LOCALSTACK_VOLUME:-localstack-persistence}:/var/lib/localstack"
+      - "${DOCKER_SOCK_PATH:-/var/run/docker.sock}:/var/run/docker.sock"
+    networks:
+      default:
+        aliases:
+          - localstack.cloud
+          - localhost.localstack.cloud
+          - s3.localhost.localstack.cloud
+          - mybucket.s3.localhost.localstack.cloud
+          - mybucket.s3-website-us-east-1.amazonaws.com
+  mail:
+    image: mailhog/mailhog:v1.0.1
+
+volumes:
+  localstack-persistence:
