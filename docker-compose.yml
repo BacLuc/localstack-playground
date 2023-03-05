@@ -2,6 +2,7 @@ version: "3.9"
 
 services:
   localstack:
+#    container_name: "localstack"
     image: ${LOCALSTACK_IMAGE:-localstack/localstack:1.4.0}
     ports:
       - "127.0.0.1:4566:4566"            # LocalStack Gateway
@@ -12,22 +13,44 @@ services:
       - LOCALSTACK_API_KEY=${LOCALSTACK_API_KEY:-}
       - DOCKER_HOST=unix:///var/run/docker.sock
       - S3_HOSTNAME=localhost
-      - EAGER_SERVICE_LOADING=1
+#      - EAGER_SERVICE_LOADING=1
     volumes:
       - "${LOCALSTACK_VOLUME:-localstack-persistence}:/var/lib/localstack"
       - "${DOCKER_SOCK_PATH:-/var/run/docker.sock}:/var/run/docker.sock"
-    networks:
-      default:
-        aliases:
-          - localstack.cloud
-          - localhost.localstack.cloud
-          - s3.localhost.localstack.cloud
-          - mybucket.s3.localhost.localstack.cloud
-          - mybucket.s3-website-us-east-1.amazonaws.com
+#TODO: fix network-scoped alias is supported only for containers in user defined networks
+#    networks:
+#      - default
+#        aliases:
+#          - localstack.cloud
+#          - localhost.localstack.cloud
+#          - s3.localhost.localstack.cloud
+#          - mybucket.s3.localhost.localstack.cloud
+#          - mybucket.s3-website-us-east-1.amazonaws.com
+#      - default-bridge
+
   mail:
     image: mailhog/mailhog:v1.0.1
     ports:
       - "127.0.0.1:8025:8025"
+    networks:
+      - default-bridge
+
+  aws-ami-docker-compose:
+    build:
+      context: supabase/aws-ami-supabase
+    # TODO: extract localstack-ec2/aws-ami-docker-compose to variable
+    image: localstack-ec2/aws-ami-docker-compose:ami-000001
+    privileged: true
+#    volumes:
+#      - "./supabase/aws-ami-supabase/docker-compose.yml:/app/docker-compose.yml"
+    profiles:
+      - "aws-ami-docker-compose"
 
 volumes:
   localstack-persistence:
+
+networks:
+  default-bridge:
+    name: bridge
+    external: true
+  default:

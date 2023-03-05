@@ -1,3 +1,28 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "4.57.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "3.4.3"
+    }
+    jwt = {
+      source  = "camptocamp/jwt"
+      version = "1.1.0"
+    }
+    htpasswd = {
+      source  = "loafoe/htpasswd"
+      version = "1.0.4"
+    }
+    time = {
+      source  = "hashicorp/time"
+      version = "0.9.1"
+    }
+  }
+}
+
 provider "aws" {
   access_key = "test"
   secret_key = "test"

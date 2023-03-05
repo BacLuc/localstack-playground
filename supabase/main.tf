@@ -1,55 +1,5 @@
 resource "aws_s3_bucket" "s3_bucket" {
-  bucket = var.bucket_name
-  tags   = var.tags
-}
-
-resource "aws_s3_bucket_website_configuration" "s3_bucket" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  index_document {
-    suffix = "index.html"
-  }
-
-  error_document {
-    key = "error.html"
-  }
-
-}
-
-resource "aws_s3_bucket_acl" "s3_bucket" {
-  bucket = aws_s3_bucket.s3_bucket.id
-  acl    = "public-read"
-}
-
-resource "aws_s3_bucket_policy" "s3_bucket" {
-  bucket = aws_s3_bucket.s3_bucket.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject"
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource = [
-          aws_s3_bucket.s3_bucket.arn,
-          "${aws_s3_bucket.s3_bucket.arn}/*",
-        ]
-      },
-    ]
-  })
-}
-
-resource "aws_s3_object" "object_www" {
-  depends_on   = [aws_s3_bucket.s3_bucket]
-  for_each     = fileset("${path.root}", "www/*.html")
-  bucket       = var.bucket_name
-  key          = basename(each.value)
-  source       = each.value
-  etag         = filemd5("${each.value}")
-  content_type = "text/html"
-  acl          = "public-read"
+  bucket = local.supabase.bucket_name
 }
 
 resource "aws_vpc" "main" {
@@ -65,39 +15,6 @@ resource "aws_subnet" "main" {
     Name = "Some Public Subnet"
   }
 }
-
-resource "aws_internet_gateway" "main" {
-  vpc_id = aws_vpc.main.id
-
-  tags = {
-    Name = "Some Internet Gateway"
-  }
-}
-
-resource "aws_route_table" "main" {
-  vpc_id = aws_vpc.main.id
-
-  route {
-    cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.main.id
-  }
-
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.main.id
-  }
-
-  tags = {
-    Name = "Public Route Table"
-  }
-}
-
-resource "aws_route_table_association" "public_1_rt_a" {
-  subnet_id      = aws_subnet.main.id
-  route_table_id = aws_route_table.main.id
-}
-
-
 
 resource "aws_security_group" "allow_tls" {
   name        = "allow_tls"
@@ -130,13 +47,31 @@ data "aws_ami" "ubuntu" {
 
   filter {
     name = "name"
-    # that this image is available:
-    # docker pull ubuntu:jammy
-    # docker tag ubuntu:jammy localstack-ec2/ubuntu-jammy-ami:ami-000001
-    values = ["ubuntu-jammy-ami"]
+    values = ["aws-ami-docker-compose"]
   }
 
   owners = ["000000000000"]
+}
+
+data "cloudinit_config" "ec2_cloudinit" {
+  gzip          = false
+  base64_encode = false
+
+  part {
+    content_type = "text/cloud-config"
+    filename     = "cloud-config.yaml"
+    content      = local.cloud_config
+  }
+
+  part {
+    content_type = "text/x-shellscript"
+    filename     = "init.sh"
+    content      = <<-EOF
+      #!/bin/bash
+
+      /usr/local/bin/entrypoint default
+    EOF
+  }
 }
 
 resource "aws_instance" "app_server" {
@@ -146,9 +81,7 @@ resource "aws_instance" "app_server" {
   vpc_security_group_ids = [aws_security_group.allow_tls.id]
   associate_public_ip_address = true
 
-  user_data = <<EOL
-  nc -l 443
-  EOL
+  user_data = data.cloudinit_config.ec2_cloudinit.rendered
 
   tags = {
     Name = "ExampleAppServerInstance"
@@ -170,7 +103,7 @@ resource "aws_lb_target_group_attachment" "main" {
 }
 
 resource "aws_lb" "test" {
-  name               = "test-lb-tf"
+  name               = var.loadbalancer_name
   internal           = false
   load_balancer_type = "application"
   security_groups    = [aws_security_group.allow_tls.id]

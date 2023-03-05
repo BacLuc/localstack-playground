@@ -57,6 +57,20 @@ resource "jwt_hashed_token" "service_role" {
 }
 
 locals {
+  supabase = {
+    bucket_name: var.supabase_bucket_name
+  }
+
+  localstack = {
+    host: "localhost.localstack.cloud"
+    port: 4566
+    loadbalancer_subdomain: "elb"
+    storage_subdomain: "s3"
+  }
+
+  domain = var.domain == "" ? "${local.localstack.host}:${local.localstack.port}" : var.domain
+  site_url = "http://${var.loadbalancer_name}.${local.localstack.loadbalancer_subdomain}.${local.domain}"
+
   default_tags = [
     "supabase",
     "digitalocean",
@@ -64,14 +78,6 @@ locals {
   ]
 
   ssh_ip_range_spaces = var.ssh_ip_range == ["0.0.0.0/0"] ? [] : var.ssh_ip_range
-
-  spaces_restricted_ip_range = concat(
-    ["${digitalocean_droplet.this.ipv4_address}"],
-    ["${digitalocean_reserved_ip.this.ip_address}"],
-    local.ssh_ip_range_spaces
-  )
-
-  spaces_ip_range = var.spaces_restrict_ip ? local.spaces_restricted_ip_range : ["0.0.0.0/0", "::/0"]
 
   inbound_rule_ssh = var.enable_ssh ? [{
     protocol         = "tcp"
@@ -91,8 +97,7 @@ locals {
   )
 
   tags = concat(
-    local.default_tags,
-    var.tags
+    local.default_tags
   )
 
   ttl = {
@@ -101,8 +106,6 @@ locals {
     "MX"    = 14400
     "TXT"   = 3600
   }
-
-  ssh_fingerprints = var.ssh_keys != [""] ? var.ssh_keys : [digitalocean_ssh_key.this[0].fingerprint]
 
   smtp_sender_name   = var.smtp_sender_name != "" ? var.smtp_sender_name : var.smtp_admin_user
   smtp_nickname      = var.smtp_nickname != "" ? var.smtp_nickname : var.smtp_sender_name != "" ? var.smtp_sender_name : var.smtp_admin_user
@@ -115,30 +118,21 @@ locals {
       TF_JWT_SECRET               = "${random_password.jwt.result}",
       TF_ANON_KEY                 = "${jwt_hashed_token.anon.token}",
       TF_SERVICE_ROLE_KEY         = "${jwt_hashed_token.service_role.token}",
-      TF_DOMAIN                   = "${var.domain}",
-      TF_SITE_URL                 = "${var.site_url}",
+      TF_DOMAIN                   = "${local.domain}",
+      TF_SITE_URL                 = "${local.site_url}",
       TF_TIMEZONE                 = "${var.timezone}",
       TF_REGION                   = "${var.region}",
-      TF_SPACES_BUCKET            = "${digitalocean_spaces_bucket.this.name}",
-      TF_SPACES_ACCESS_KEY_ID     = "${var.spaces_access_key_id}",
-      TF_SPACES_SECRET_ACCESS_KEY = "${var.spaces_secret_access_key}",
+      TF_SPACES_BUCKET            = "${local.supabase.bucket_name}",
+      TF_SPACES_ACCESS_KEY_ID     = "test",
+      TF_SPACES_SECRET_ACCESS_KEY = "test",
       TF_SMTP_ADMIN_EMAIL         = "${var.smtp_admin_user}",
       TF_SMTP_HOST                = "${var.smtp_host}",
       TF_SMTP_PORT                = "${var.smtp_port}",
       TF_SMTP_USER                = "${var.smtp_user}",
-      TF_SMTP_PASS                = "${sendgrid_api_key.this.api_key}",
+      TF_SMTP_PASS                = "",
       TF_SMTP_SENDER_NAME         = "${local.smtp_sender_name}",
       TF_DEFAULT_ORGANIZATION     = "${var.studio_org}",
       TF_DEFAULT_PROJECT          = "${var.studio_project}",
-    }
-  )
-
-  do_ini = templatefile("${path.module}/files/digitalocean.ini.tftpl", { TF_DIGITALOCEAN_TOKEN = "${var.do_token}" })
-
-  htpasswd = templatefile("${path.module}/files/.htpasswd.tftpl",
-    {
-      AUTH_USER = "${var.auth_user}",
-      AUTH_PASS = "${htpasswd_password.hash.apr1}"
     }
   )
 
@@ -154,28 +148,14 @@ locals {
     ${jsonencode({
   write_files = [
     {
-      path        = "/root/supabase/.env"
+      path        = "/app/.env"
       permissions = "0644"
       owner       = "root:root"
       encoding    = "b64"
       content     = base64encode("${local.env_file}")
     },
     {
-      path        = "/root/supabase/digitalocean.ini"
-      permissions = "0600"
-      owner       = "root:root"
-      encoding    = "b64"
-      content     = base64encode("${local.do_ini}")
-    },
-    {
-      path        = "/root/supabase/.htpasswd"
-      permissions = "0644"
-      owner       = "root:root"
-      encoding    = "b64"
-      content     = base64encode("${local.htpasswd}")
-    },
-    {
-      path        = "/root/supabase/volumes/api/kong.yml"
+      path        = "/app/volumes/api/kong.yml"
       permissions = "0644"
       owner       = "root:root"
       encoding    = "b64"
