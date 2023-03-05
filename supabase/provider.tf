@@ -12,6 +12,11 @@ provider "aws" {
 
   endpoints {
     # use endpoint of localstack
-    s3 = "http://s3.localhost.localstack.cloud:4566"
+    ec2           = "http://localhost:4566"
+    iam           = "http://localhost:4566"
+    s3            = "http://localhost:4566"
+    glacier       = "http://localhost:4566"
+    sns           = "http://localhost:4566"
+    organizations = "http://localhost:4566"
   }
 }

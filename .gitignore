@@ -1,4 +1,5 @@
-# jetbrains
+**/*.tfstate*
 *.iml
 .idea
+.terraform
 /.env
