@@ -64,7 +64,7 @@ services:
       KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
       KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
     volumes:
-      - kong-volume:/var/lib/kong:ro
+      - kong-vol:/var/lib/kong:ro
 
   auth:
     container_name: supabase-auth
@@ -260,5 +260,10 @@ volumes:
   img-proxy:
   swag-config-vol:
     name: supabase-swag-config-vol
+    external: true
   schema-vol:
     name: supabase-schema-config-vol
+    external: true
+  kong-vol:
+    name: supabase-kong-vol
+    external: true

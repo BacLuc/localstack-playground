@@ -1,3 +1,3 @@
-output "supabase_endpoint" {
-  value = local.site_url
+output "task_definition_arn" {
+  value     = aws_ecs_task_definition.supabase-dc.arn
 }

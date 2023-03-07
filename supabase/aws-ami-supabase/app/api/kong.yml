@@ -6,10 +6,10 @@ _format_version: "1.1"
 consumers:
   - username: anon
     keyauth_credentials:
-      - key: ${TF_ANON_KEY}
+      - key: ${ANON_KEY}
   - username: service_role
     keyauth_credentials:
-      - key: ${TF_SERVICE_ROLE_KEY}
+      - key: ${SERVICE_ROLE_KEY}
 
 ###
 ### Access Control List

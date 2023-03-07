@@ -7,43 +7,43 @@ variable "supabase_bucket_name" {
 variable "region" {
   description = "The region where the Droplet will be created."
   type        = string
-  default = "us-east-1"
+  default     = "us-east-1"
 }
 
 variable "domain" {
   description = "Domain name where the Supabase instance is accessible. The final domain will be of the format `supabase.example.com`"
   type        = string
-  default = ""
+  default     = ""
 }
 
 variable "timezone" {
   description = "Timezone to use for Nginx (e.g. Europe/Amsterdam)."
   type        = string
-  default = "Europe/Zurich"
+  default     = "Europe/Zurich"
 }
 
 variable "smtp_admin_user" {
   description = "`From` email address for all emails sent."
   type        = string
-  default = ""
+  default     = ""
 }
 
 variable "smtp_addr" {
   description = "Company Address of the Verified Sender. Max 100 characters. If more is needed use `smtp_addr_2`"
   type        = string
-  default = "None"
+  default     = "None"
 }
 
 variable "smtp_city" {
   description = "Company city of the verified sender."
   type        = string
-  default = "Zurich"
+  default     = "Zurich"
 }
 
 variable "smtp_country" {
   description = "Company country of the verified sender."
   type        = string
-  default = "Switzerland"
+  default     = "Switzerland"
 }
 
 variable "enable_ssh" {
@@ -150,6 +150,6 @@ variable "smtp_reply_to_name" {
 
 variable "loadbalancer_name" {
   description = "Name of the load balancer"
-  type = string
-  default = "supabase"
+  type        = string
+  default     = "supabase"
 }
