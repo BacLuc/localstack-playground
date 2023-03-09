@@ -5,26 +5,20 @@
 version: "3.8"
 
 services:
-  swag:
-    image: lscr.io/linuxserver/swag:2.2.0
-    container_name: swag
+  reverse-proxy:
+#    image: lscr.io/linuxserver/swag:2.2.0
+    image: nginx:1.23.3
     cap_add:
       - NET_ADMIN
     environment:
-      - PUID=1000
-      - PGID=1000
       - TZ=${TIMEZONE:-Europe/Zurich}
-      - URL=${DOMAIN}
-      - SUBDOMAINS=*
     volumes:
-      - swag-config-vol:/config/nginx/proxy-confs/
+      - swag-config-vol:/etc/nginx/
     ports:
-      - 443:443
-      - 80:80
+      - "80:80"
     restart: unless-stopped
 
   studio:
-    container_name: supabase-studio
     image: supabase/studio:20230216-e731b77
     restart: unless-stopped
     healthcheck:
@@ -49,7 +43,6 @@ services:
       SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
 
   kong:
-    container_name: supabase-kong
     image: kong:2.8.1
     restart: unless-stopped
     ports:
@@ -67,7 +60,6 @@ services:
       - kong-vol:/var/lib/kong:ro
 
   auth:
-    container_name: supabase-auth
     image: supabase/gotrue:v2.47.0
     depends_on:
       db:
@@ -116,7 +108,6 @@ services:
       MFA_ENABLED: ${MFA_ENABLED:-0}
 
   rest:
-    container_name: supabase-rest
     image: postgrest/postgrest:v10.1.2
     depends_on:
       db:
@@ -130,7 +121,6 @@ services:
       PGRST_DB_USE_LEGACY_GUCS: "false"
 
   realtime:
-    container_name: realtime-dev.supabase-realtime
     image: supabase/realtime:v2.5.1
     depends_on:
       db:
@@ -161,7 +151,6 @@ services:
       sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
 
   storage:
-    container_name: supabase-storage
     image: supabase/storage-api:v0.28.2
     depends_on:
       db:
@@ -196,7 +185,6 @@ services:
       GLOBAL_S3_ENDPOINT: ${SPACES_ENDPOINT:-http://s3.localhost.localstack.cloud:4566}
 
   imgproxy:
-    container_name: supabase-imgproxy
     image: darthsim/imgproxy:v3.11
     healthcheck:
       test: [ "CMD", "imgproxy", "health" ]
@@ -211,7 +199,6 @@ services:
       - img-proxy:/var/lib/storage
 
   meta:
-    container_name: supabase-meta
     image: supabase/postgres-meta:v0.60.7
     depends_on:
       db:
@@ -226,8 +213,7 @@ services:
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   db:
-    container_name: supabase-db
-    image: supabase/postgres:15.1.0.42-rc2
+    image: supabase/postgres:15.1.0.53
     healthcheck:
       test: pg_isready -U postgres -h localhost
       interval: 5s
@@ -249,14 +235,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-supabase}
     volumes:
       - schema-vol:/docker-entrypoint-initdb.d/
-#      - ./volumes/db/realtime.sql:/docker-entrypoint-initdb.d/realtime.sql
-#      - ./volumes/db/roles.sql:/docker-entrypoint-initdb.d/roles.sql
-#      # Must be superuser to enable pg_net extension
-#      - ./volumes/db/webhooks.sql:/etc/postgresql.schema.sql
-#      - /mnt/supabase_volume/supabase/data/:/var/lib/postgresql/data
 
 volumes:
-  kong-volume:
   img-proxy:
   swag-config-vol:
     name: supabase-swag-config-vol
@@ -267,3 +247,7 @@ volumes:
   kong-vol:
     name: supabase-kong-vol
     external: true
+
+networks:
+  localstack-subnet:
+    name: "localstack-subnet"

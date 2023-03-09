@@ -47,14 +47,16 @@ services:
 
   supabase-dc:
     build:
-      context: supabase/aws-ami-supabase
+      context: supabase/supabase-dc
     image: ${CONTAINER_REGISTRY:-docker.io}/${REPO_NAME:-playground-localstack}/supabase-dc
     privileged: true
     volumes:
-      - "./supabase/aws-ami-supabase/app:/app"
-      - "./supabase/aws-ami-supabase/entrypoint.sh:/usr/local/bin/entrypoint"
+      - "./supabase/supabase-dc/entrypoint.sh:/usr/local/bin/entrypoint"
+      - "${DOCKER_SOCK_PATH:-/var/run/docker.sock}:/var/run/docker.sock"
     profiles:
-      - "aws-ami-docker-compose"
+      - "supabase-dc"
+    env_file:
+      - .env
 
 volumes:
   localstack-persistence:

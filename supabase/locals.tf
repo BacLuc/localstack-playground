@@ -139,11 +139,11 @@ locals {
         { "name" = "SPACES_SECRET_ACCESS_KEY", "value" = "test" },
         { "name" = "SPACES_ENDPOINT", "value" = "localstack:4566" },
         { "name" = "PGRST_DB_SCHEMA", "value" = "public,storage,graphql_public" },
-        { "name" = "SITE_URI", "value" = "unknown" },
+        { "name" = "SITE_URI", "value" = "http://localhost" },
         { "name" = "ADDITIONAL_REDIRECT_URLS", value = "" },
-        { "name" = "JWT_EXPIR", "value" = tostring(3600) },
+        { "name" = "JWT_EXPIRY", "value" = tostring(3600) },
         { "name" = "DISABLE_SIGNUP", "value" = "false" },
-        { "name" = "API_EXTERNAL_URL", "value" = "unknown" },
+        { "name" = "API_EXTERNAL_URL", "value" = "http://localhost" },
         { "name" = "MAILER_URLPATHS_CONFIRMATION", "value" = "/auth/v1/verify" },
         { "name" = "MAILER_URLPATHS_INVITE", "value" = "/auth/v1/verify" },
         { "name" = "MAILER_URLPATHS_RECOVER", "value" = "/auth/v1/verify" },
@@ -160,33 +160,33 @@ locals {
         { "name" = "ENABLE_PHONE_AUTOCONFIRM", "value" = "false" },
         { "name" = "STUDIO_DEFAULT_ORGANIZATION", "value" = var.studio_org },
         { "name" = "STUDIO_DEFAULT_PROJECT", "value" = var.studio_project },
-        { "name" = "SUPABASE_PUBLIC_URL", "value" = "https://unknown" },
+        { "name" = "SUPABASE_PUBLIC_URL", "value" = "http://localhost" },
       ],
       "portMappings" = [
-        {
-          "containerPort" = 80,
-          "hostPort"      = 8080
-        },
-        {
-          "containerPort" = 443,
-          "hostPort"      = 9443
-        },
-        {
-          "containerPort" = 3000,
-          "hostPort"      = 3000
-        },
-        {
-          "containerPort" = 5432,
-          "hostPort"      = 5432
-        },
-        {
-          "containerPort" = 8000,
-          "hostPort"      = 8000
-        },
-        {
-          "containerPort" = 8443,
-          "hostPort"      = 8443
-        }
+#        {
+#          "containerPort" = 80,
+#          "hostPort"      = 8080
+#        },
+#        {
+#          "containerPort" = 443,
+#          "hostPort"      = 9443
+#        },
+#        {
+#          "containerPort" = 3000,
+#          "hostPort"      = 3000
+#        },
+#        {
+#          "containerPort" = 5432,
+#          "hostPort"      = 5432
+#        },
+#        {
+#          "containerPort" = 8000,
+#          "hostPort"      = 8000
+#        },
+#        {
+#          "containerPort" = 8443,
+#          "hostPort"      = 8443
+#        }
       ]
       "mountPoints" = [
         { "sourceVolume" : local.docker_sock_volume_name, "containerPath" = "/var/run/docker.sock" }
