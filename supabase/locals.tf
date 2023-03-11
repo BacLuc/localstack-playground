@@ -2,12 +2,19 @@ resource "random_password" "psql" {
   length           = 32
   special          = true
   override_special = "-_"
+  keepers = {
+    seed = var.password_seed
+  }
 }
 
 resource "random_password" "htpasswd" {
   length           = 32
   special          = true
   override_special = "-_"
+
+  keepers = {
+    seed = var.password_seed
+  }
 }
 
 resource "htpasswd_password" "hash" {
@@ -28,6 +35,9 @@ resource "random_password" "jwt" {
   length           = 40
   special          = true
   override_special = "-_"
+  keepers = {
+    seed = var.password_seed
+  }
 }
 
 resource "jwt_hashed_token" "anon" {

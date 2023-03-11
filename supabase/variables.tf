@@ -153,3 +153,9 @@ variable "loadbalancer_name" {
   type        = string
   default     = "supabase"
 }
+
+variable "password_seed" {
+  description = "The seed for the passwords. New passwords are generated if it changes"
+  type = string
+  default = "my secret seed"
+}
