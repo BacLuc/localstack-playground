@@ -45,8 +45,8 @@ const Ssg: NextPage<StaticProps> = ({ tasks, notices }) => {
           )
         })}
       </ul>
-      <Link href="/ssr" prefetch={false}>
-        <a className="my-3 text-xs"> Link to ssr</a>
+      <Link href="/ssr" className={"my-3 text-xs"} prefetch={false}>
+        Link to ssr
       </Link>
       <button className="mb-3 text-xs" onClick={() => router.push('/ssr')}>
         Route to ssr
