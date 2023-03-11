@@ -26,6 +26,7 @@ resource "local_file" "supabase-nextjs-env" {
   content = <<HEREDOC
 NEXT_PUBLIC_SUPABASE_URL=http://localhost
 NEXT_PUBLIC_SUPABASE_ANON_KEY=${jwt_hashed_token.anon.token}
+DB_URL=postgres://postgres:${random_password.psql.result}@localhost:5432
   HEREDOC
   filename = "${path.module}/../supabase-nextjs/.env.local"
 }
