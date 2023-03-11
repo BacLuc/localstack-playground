@@ -1,20 +1,31 @@
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react'
+import React from "react";
 
-const Home = () => {
-  const session = useSession()
-  const supabase = useSupabaseClient()
+import {Todo} from "@/lib/Todo";
+import {createSupabaseServer} from "@/utils/supabase-server";
 
-  return (
-      <div className="container" style={{ padding: '50px 0 100px 0' }}>
-        {!session ? (
-            <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} theme="dark" />
-        ) : (
-            <p>Account page will go here.</p>
-        )}
-      </div>
-  )
+
+type HomeProps = {
+    todos: Todo[]
+}
+
+export async function getServerSideProps() {
+    const supabaseServer = createSupabaseServer();
+    const {data} = await supabaseServer.from("todos").select("*");
+    return {
+        props: {todos: data},
+    }
+}
+
+const Home = ({todos}: HomeProps) => {
+    return (
+        <div className="container" style={{padding: '50px 0 100px 0'}}>
+            <div>
+                {todos?.map(item =>
+                    <li key={item.id}>Title: {item.title} Content: {item.content} Done: {item.done ? 'true' : 'false'}</li>
+                )}
+            </div>
+        </div>
+    )
 }
 
 export default Home
